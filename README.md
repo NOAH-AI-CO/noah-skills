@@ -1,6 +1,6 @@
-## Noah Skills
+## Noah AI Skills
 
-A collection of domain-specific skills for querying Noah medical data APIs from AI agents or other automation. Each skill lives in its own folder under `skills/` with a `SKILL.md` description and a small CLI wrapper.
+A collection of domain-specific skills for querying Noah medical data APIs from medical and biotech AI agents or other automation. Each skill lives in its own folder under `skills/` with a `SKILL.md` description and a small CLI wrapper.
 
 ### Repository structure
 
@@ -9,7 +9,7 @@ A collection of domain-specific skills for querying Noah medical data APIs from 
 - `skills/drug_pipeline` — **drug-search** skill for querying drug pipeline / development data.
 - `skills/medical_conference` — **medical-conference-search** skill for querying conferences and presentations.
 
-Query skill folder typically contains:
+Querying skill folder typically contains:
 
 - `SKILL.md` — formal skill specification (when to trigger, parameters, examples, dependencies).
 - `scripts/search.py` — CLI entrypoint that takes JSON parameters and calls the Noah backend API.

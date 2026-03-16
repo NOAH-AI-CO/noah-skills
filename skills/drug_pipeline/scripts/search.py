@@ -70,7 +70,7 @@ def search(params: dict) -> dict:
     :param params: Query parameter dict
     :return: Parsed JSON response from the API
     """
-    api_url = os.environ.get("NOAH_API_URL", "https://www.noah.bio/api/skills/drug_search/").strip()
+    api_url = os.environ.get("NOAH_API_URL", "https://test.noah.bio/api/skills/drug_search/").strip()
     api_token = os.environ.get("NOAH_API_TOKEN", "").strip()
 
     if not api_token:

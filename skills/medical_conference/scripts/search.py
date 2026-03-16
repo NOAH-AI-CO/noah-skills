@@ -56,7 +56,7 @@ except ImportError:
 # ---------------------------------------------------------------------------
 
 def _post(endpoint, payload):
-    api_url = os.environ.get("NOAH_API_URL", "https://www.noah.bio").strip()
+    api_url = os.environ.get("NOAH_API_URL", "https://test.noah.bio").strip()
     api_token = os.environ.get("NOAH_API_TOKEN", "").strip()
 
     url = f"{api_url}{endpoint}"
