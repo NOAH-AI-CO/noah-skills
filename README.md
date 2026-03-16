@@ -22,8 +22,13 @@ Querying skill folder typically contains:
 
 #### Setting `NOAH_API_TOKEN`
 
-macOS / Linux (bash/zsh):
+#### How to get your API token
+- Sign up or log in at [noah.bio](https://www.noah.bio).
+- In the bottom-left corner of the page, click **API Key**.
+- Create a new API key and copy the generated value into `NOAH_API_TOKEN`.
+- If you are using **Openclaw**, you can simply ask it to set the variable for you, for example: *“Hi Openclaw, please set the environment variable NOAH_API_TOKEN=\\"your_token_here\\".”*
 
+macOS / Linux (bash/zsh):
 ```bash
 export NOAH_API_TOKEN="your_token_here"
 ```
