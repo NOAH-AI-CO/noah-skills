@@ -5,7 +5,7 @@ A collection of domain-specific skills for querying Noah medical data APIs from 
 ### Repository structure
 
 - `AGENTS.md` — overview of all available skills and how agents should select and call them.
-- `skills/clinical_trail` — **clinical-trial-search** skill for querying clinical trial databases.
+- `skills/clinical_trial` — **clinical-trial-search** skill for querying clinical trial databases.
 - `skills/drug_pipeline` — **drug-search** skill for querying drug pipeline / development data.
 - `skills/medical_conference` — **medical-conference-search** skill for querying conferences and presentations.
 
@@ -40,7 +40,7 @@ All skills use a similar pattern: construct a JSON object with the query paramet
 Example (clinical trial search with inline JSON):
 
 ```bash
-python skills/clinical_trail/scripts/search.py --params '{
+python skills/clinical_trial/scripts/search.py --params '{
   "indication": ["lung cancer"],
   "phase": ["Phase 3"],
   "page_num": 0,
@@ -58,7 +58,7 @@ echo '{
   "page_size": 5
 }' > /tmp/query.json
 
-python skills/clinical_trail/scripts/search.py --params-file /tmp/query.json
+python skills/clinical_trial/scripts/search.py --params-file /tmp/query.json
 ```
 
 See each `skills/<name>/SKILL.md` for the full schema, examples, and any additional flags (e.g. conference-specific parameters).
