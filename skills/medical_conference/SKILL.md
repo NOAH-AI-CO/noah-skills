@@ -37,12 +37,12 @@ Identify the following entity types from the user's question:
 | `series_organization` | `str` | Organizing body | `"American Society of Clinical Oncology"` |
 | `series_area` | `List[str]` | Therapeutic or subject area(s) | `["oncology", "cardiology"]` |
 | `from_n` | `int` | Pagination offset (0-based) | `0` |
-| `size` | `int` | Results per page (1–5) | `5` |
+| `size` | `int` | Results per page (1–10) | `10` |
 
 **Type rules:**
 - All fields except `series_area` → plain `str`
 - `series_area` → `List[str]`
-- Default: `from_n: 0, size: 5`
+- Default: `from_n: 0, size: 10`
 
 **Conference result fields returned:**
 `conference_name`, `conference_abbreviation`, `conference_website`, `conference_description`, `conference_start_date`, `conference_end_date`, `conference_location`, `series_id`, `series_name`, `series_abbreviation`, `series_website`, `series_organization`, `series_area`

@@ -34,7 +34,7 @@ Identify the following entity types from the user's question:
 | `has_result_summary` | `bool` | Only trials with result summaries | `true`                                                    |
 | `official_data` | `bool` | Only official data sources        | `false`                                                   |
 | `page_num` | `int` | Page index (0-based)              | `0`                                                       |
-| `page_size` | `int` | Results per page (1–5)          | `5`                                                       |
+| `page_size` | `int` | Results per page (1–10)          | `10`                                                       |
 
 **Dict field format:**
 ```json
@@ -85,7 +85,7 @@ If results exceed 100, prompt the user to narrow the query. If no results are re
   "phase": ["Phase 3"],
   "has_result_summary": true,
   "page_num": 0,
-  "page_size": 5
+  "page_size": 10
 }
 ```
 
@@ -113,7 +113,7 @@ If results exceed 100, prompt the user to narrow the query. If no results are re
   "location": {"logic": "or", "data": ["China"]},
   "drug_feature": {"logic": "or", "data": ["bispecific"]},
   "page_num": 0,
-  "page_size": 5
+  "page_size": 10
 }
 ```
 
@@ -129,7 +129,7 @@ If results exceed 100, prompt the user to narrow the query. If no results are re
   "route_of_administration": {"logic": "or", "data": ["oral"]},
   "indication": ["colorectal cancer"],
   "page_num": 0,
-  "page_size": 5
+  "page_size": 10
 }
 ```
 

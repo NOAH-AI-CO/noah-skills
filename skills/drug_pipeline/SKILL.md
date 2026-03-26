@@ -30,7 +30,7 @@ Identify the following entity types from the user's question:
 | `location` | `List[str]` | Geographic location(s)      | `["China", "USA"]`                                        |
 | `route_of_administration` | `dict` | Route of administration     | `{"logic": "or", "data": ["IV", "oral"]}`                 |
 | `page_num` | `int` | Page index (0-based)        | `0`                                                       |
-| `page_size` | `int` | Results per page (1–5)      | `5`                                                       |
+| `page_size` | `int` | Results per page (1–60)      | `30`                                                       |
 
 **Dict field format:**
 ```json
@@ -79,7 +79,7 @@ If no results are returned, suggest relaxing one or more filters (e.g. broader i
   "drug_modality": {"logic": "or", "data": ["antibody"]},
   "phase": ["Phase 3"],
   "page_num": 0,
-  "page_size": 5
+  "page_size": 30
 }
 ```
 
@@ -94,7 +94,7 @@ If no results are returned, suggest relaxing one or more filters (e.g. broader i
   "drug_feature": {"logic": "or", "data": ["bispecific"]},
   "indication": ["lung cancer"],
   "page_num": 0,
-  "page_size": 5
+  "page_size": 30
 }
 ```
 
@@ -109,7 +109,7 @@ If no results are returned, suggest relaxing one or more filters (e.g. broader i
   "drug_modality": {"logic": "or", "data": ["small molecule"]},
   "route_of_administration": {"logic": "or", "data": ["oral"]},
   "page_num": 0,
-  "page_size": 5
+  "page_size": 30
 }
 ```
 
@@ -122,7 +122,7 @@ If no results are returned, suggest relaxing one or more filters (e.g. broader i
 {
   "target": {"logic": "and", "data": ["PD-1", "VEGF"]},
   "page_num": 0,
-  "page_size": 5
+  "page_size": 30
 }
 ```
 
@@ -135,7 +135,7 @@ If no results are returned, suggest relaxing one or more filters (e.g. broader i
 {
   "drug_name": {"logic": "or", "data": ["pembrolizumab"]},
   "page_num": 0,
-  "page_size": 5
+  "page_size": 30
 }
 ```
 

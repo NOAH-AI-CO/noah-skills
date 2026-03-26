@@ -62,3 +62,8 @@ python skills/clinical_trial/scripts/search.py --params-file /tmp/query.json
 ```
 
 See each `skills/<name>/SKILL.md` for the full schema, examples, and any additional flags (e.g. conference-specific parameters).
+
+## Contributors & Acknowledgements
+
+- [Noahai](https://github.com/NoahAI-Clawhub) - Project maintainer
+- [Claude (Anthropic)](https://www.anthropic.com/claude) - AI assistant, contributed to code generation and documentation
