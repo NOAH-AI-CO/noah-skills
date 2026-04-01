@@ -1,10 +1,7 @@
 ---
 name: medical-conference-search
 description: "Search medical conference and presentation databases. Use this skill whenever the user asks about medical conferences, academic conferences, session abstracts, posters, oral presentations, or conference-presented drug/trial data. Three scripts are available: search_conferences.py (find conferences), search_presentations.py (find abstracts/presentations), and search_chained.py (find conferences then auto-inject into presentation search). Trigger words include: conference, symposium, congress, ASCO, ESMO, AHA, ACC, session, abstract, poster, oral presentation, data presented at, efficacy data, safety data, congress abstract."
-env:
-  - name: NOAH_API_TOKEN
-    description: "API authentication token. Register for a free account at https://noah.bio to obtain your key."
-    required: true
+metadata: { "openclaw": { "emoji": "🔍︎",  "requires": { "bins": ["python3"], "env":["NOAH_API_TOKEN"]},"primaryEnv":"NOAH_API_TOKEN" } }
 ---
 
 # Conference Search Skill

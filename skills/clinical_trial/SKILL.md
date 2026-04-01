@@ -1,10 +1,7 @@
 ---
 name: clinical-trial-search
 description: "Search clinical trial databases similar to ClinicalTrials.gov. Use this skill whenever the user asks about clinical trials, drug trials, indications, targets, drug names, trial phases, NCT IDs, enrollment, or recruitment. Automatically parses natural language questions into structured query parameters and calls the backend API to return matching trial records. Trigger words include: clinical trial, NCT, drug development, indication, target, phase, enrollment, recruitment, sponsor, cohort, arm, endpoint, efficacy, safety data."
-env:
-  - name: NOAH_API_TOKEN
-    description: "API authentication token. Register for a free account at https://noah.bio to obtain your key."
-    required: true
+metadata: { "openclaw": { "emoji": "🔍︎",  "requires": { "bins": ["python3"], "env":["NOAH_API_TOKEN"]},"primaryEnv":"NOAH_API_TOKEN" } }
 ---
 
 # Clinical Trial Search Skill

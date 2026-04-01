@@ -1,10 +1,7 @@
 ---
 name: drug-search
 description: "Search a pharmaceutical drug database for pipeline and development information. Use this skill whenever the user asks about drugs by name, target, indication, company, modality, phase, or development progress. Automatically parses natural language questions into structured query parameters and calls the backend API to return matching drug records. Trigger words include: drug, compound, molecule, pipeline, drug target, indication, modality, antibody, small molecule, phase, approved, development stage, sponsor, drug company, bispecific, ADC, route of administration."
-env:
-  - name: NOAH_API_TOKEN
-    description: "API authentication token. Register for a free account at https://noah.bio to obtain your key."
-    required: true
+metadata: { "openclaw": { "emoji": "🔍︎",  "requires": { "bins": ["python3"], "env":["NOAH_API_TOKEN"]},"primaryEnv":"NOAH_API_TOKEN" } }
 ---
 
 # Drug Pipeline Search Skill
