@@ -21,6 +21,7 @@ import argparse
 import json
 import os
 import sys
+from urllib.parse import urljoin
 
 try:
     import requests
@@ -74,7 +75,7 @@ def search(params: dict) -> dict:
     :param params: Query parameter dict
     :return: Parsed JSON response from the API
     """
-    api_url = os.environ.get("NOAH_API_URL", "https://noah.bio/api/skills/clinical_trial_search/").strip()
+    api_url = r"https://noah.bio/api/skills/clinical_trial_search/"
     api_token = os.environ.get("NOAH_API_TOKEN", "").strip()
 
     if not api_token:
@@ -95,7 +96,23 @@ def search(params: dict) -> dict:
     print(f"[INFO] Query payload:\n{json.dumps(payload, indent=2)}", file=sys.stderr)
 
     try:
-        response = requests.post(api_url, headers=headers, json=payload, timeout=30)
+        response = requests.post(api_url, headers=headers, json=payload, timeout=30, allow_redirects=False)
+
+        for _ in range(3):
+            if response.status_code not in {301, 302, 303, 307, 308}:
+                break
+            redirect_url = response.headers.get("Location", "").strip()
+            if not redirect_url:
+                break
+            redirect_url = urljoin(api_url, redirect_url)
+            response = requests.post(
+                redirect_url,
+                headers=headers,
+                json=payload,
+                timeout=30,
+                allow_redirects=False,
+            )
+
         response.raise_for_status()
     except requests.exceptions.ConnectionError as e:
         raise ConnectionError(f"Cannot connect to API server: {api_url}\nDetails: {e}")
@@ -115,60 +132,45 @@ def search(params: dict) -> dict:
     return response.json()
 
 
+def format_json(data, indent=0):
+    result = ""
+    prefix = "  " * indent
+    if isinstance(data, dict):
+        for key, value in data.items():
+            if isinstance(value, (dict, list)):
+                result += f"{prefix}{key}:\n"
+                result += format_json(value, indent + 1)
+            else:
+                result += f"{prefix}{key}: {value}\n"
+    elif isinstance(data, list):
+        for i, item in enumerate(data):
+            if isinstance(item, (dict, list)):
+                result += f"{prefix}[{i}]:\n"
+                result += format_json(item, indent + 1)
+            else:
+                result += f"{prefix}[{i}]: {item}\n"
+    else:
+        result += f"{prefix}{data}\n"
+    return result
+
 def format_results(data: dict) -> str:
     """Format the API response into human-readable text."""
     lines = []
-
-    total = data.get("total", data.get("total_count", "unknown"))
-    trials = data.get("trials", data.get("results", data.get("data", [])))
+    total = data.get("page_size", "unknown")
+    trials = data.get("results", [])
 
     lines.append(f"=== Results: {total} trial(s) matched ===\n")
-
     if not trials:
         lines.append("No clinical trials found matching your query.")
         return "\n".join(lines)
 
     for i, trial in enumerate(trials, 1):
-        lines.append(f"[{i}] {trial.get('title', trial.get('brief_title', '(no title)'))}")
-
-        nct = trial.get("nct_id") or trial.get("nctid") or trial.get("NCTId", "")
-        if nct:
-            lines.append(f"  NCT ID              : {nct}")
-
-        acronym = trial.get("acronym", "")
-        if acronym:
-            lines.append(f"  Acronym             : {acronym}")
-
-        phase = trial.get("phase", "")
-        if phase:
-            lines.append(f"  Phase               : {phase}")
-
-        status = trial.get("status", trial.get("overall_status", ""))
-        if status:
-            lines.append(f"  Status              : {status}")
-
-        indication = trial.get("indication", trial.get("conditions", ""))
-        if indication:
-            if isinstance(indication, list):
-                indication = ", ".join(indication)
-            lines.append(f"  Indication          : {indication}")
-
-        drugs = trial.get("drugs", trial.get("interventions", ""))
-        if drugs:
-            if isinstance(drugs, list):
-                drugs = ", ".join(drugs) if isinstance(drugs[0], str) else ", ".join(
-                    d.get("name", "") for d in drugs
-                )
-            lines.append(f"  Drug(s)             : {drugs}")
-
-        sponsor = trial.get("company", trial.get("sponsor", trial.get("lead_sponsor", "")))
-        if sponsor:
-            lines.append(f"  Sponsor             : {sponsor}")
-
-        if trial.get("has_result_summary"):
-            lines.append(f"  Result Summary      : available")
-
-        lines.append("")  # blank line between entries
+        lines.append(f"---- [{i}] -----")
+        
+        s = format_json(trial)
+        lines.append(s.strip())
+        
+        lines.append("")
 
     return "\n".join(lines)
 
@@ -180,7 +182,7 @@ def main():
         epilog="""
 Examples:
   # PD-1 antibody trials in lung cancer, Phase 3, with results
-  python scripts/search.py --params '{"target": {"keywords": ["PD-1"]}, "indication": ["lung cancer"], "phase": ["Phase 3"], "has_result_summary": true}'
+  python scripts/search.py --params '{"target": {"logic": "or", "data": ["PD-1"]}, "indication": ["lung cancer"], "phase": ["III"], "has_result_summary": true}'
 
   # Query by NCT ID
   python scripts/search.py --params '{"nctid": ["NCT04280783"]}'
@@ -239,9 +241,11 @@ Examples:
             print(f"[ERROR] Parameter file is not valid JSON: {e}", file=sys.stderr)
             sys.exit(1)
     else:
-        print("[ERROR] Provide either --params or --params-file", file=sys.stderr)
-        parser.print_help(sys.stderr)
-        sys.exit(1)
+        # default empty params and get all trials
+        user_params = {
+            "page_num": 0,
+            "page_size": 10,
+        }
 
     # Execute the query
     try:

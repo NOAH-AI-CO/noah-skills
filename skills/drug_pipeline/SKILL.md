@@ -1,6 +1,10 @@
 ---
 name: drug-search
 description: "Search a pharmaceutical drug database for pipeline and development information. Use this skill whenever the user asks about drugs by name, target, indication, company, modality, phase, or development progress. Automatically parses natural language questions into structured query parameters and calls the backend API to return matching drug records. Trigger words include: drug, compound, molecule, pipeline, drug target, indication, modality, antibody, small molecule, phase, approved, development stage, sponsor, drug company, bispecific, ADC, route of administration."
+env:
+  - name: NOAH_API_TOKEN
+    description: "API authentication token. Register for a free account at https://noah.bio to obtain your key."
+    required: true
 ---
 
 # Drug Pipeline Search Skill
@@ -26,11 +30,11 @@ Identify the following entity types from the user's question:
 | `target` | `dict` | Biological target(s)        | `{"logic": "or", "data": ["PD-1", "VEGF"]}`               |
 | `drug_modality` | `dict` | Drug modality / type        | `{"logic": "or", "data": ["antibody", "small molecule"]}` |
 | `drug_feature` | `dict` | Drug feature(s)             | `{"logic": "or", "data": ["bispecific"]}`                 |
-| `phase` | `List[str]` | Development phase(s)        | `["Phase 3", "Approved"]`                                 |
-| `location` | `List[str]` | Geographic location(s)      | `["China", "USA"]`                                        |
+| `phase` | `List[str]` | Development phase(s)        | `["Preclinical", "I", "II", "III", "IV", "Others", "IND", "Suspended", "Approved", "Unknow", "Withdraw from Market", "BLA/NDA"]`                                 |
+| `location` | `List[str]` | Geographic location(s)      | `["China", "United States", "Japan"]`                                        |
 | `route_of_administration` | `dict` | Route of administration     | `{"logic": "or", "data": ["IV", "oral"]}`                 |
 | `page_num` | `int` | Page index (0-based)        | `0`                                                       |
-| `page_size` | `int` | Results per page (1–60)      | `30`                                                       |
+| `page_size` | `int` | Results per page (1–2000)      | `200`                                                       |
 
 **Dict field format:**
 ```json
@@ -43,7 +47,7 @@ Identify the following entity types from the user's question:
 **Type rules:**
 - `company`, `indication`, `phase`, `location` → plain `List[str]`
 - `drug_name`, `target`, `drug_modality`, `drug_feature`, `route_of_administration` → `dict` with `logic` and `data`
-- Default to `page_num: 0, page_size: 5` unless the user specifies otherwise
+- Default to `page_num: 0, page_size: 10` unless the user specifies otherwise
 - Prefer English keywords (the database is indexed in English); translate non-English terms
 
 ## Step 2: Execute the Query
@@ -77,7 +81,7 @@ If no results are returned, suggest relaxing one or more filters (e.g. broader i
 {
   "target": {"logic": "or", "data": ["PD-1"]},
   "drug_modality": {"logic": "or", "data": ["antibody"]},
-  "phase": ["Phase 3"],
+  "phase": ["III"],
   "page_num": 0,
   "page_size": 30
 }

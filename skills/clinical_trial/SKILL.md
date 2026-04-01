@@ -1,6 +1,10 @@
 ---
 name: clinical-trial-search
 description: "Search clinical trial databases similar to ClinicalTrials.gov. Use this skill whenever the user asks about clinical trials, drug trials, indications, targets, drug names, trial phases, NCT IDs, enrollment, or recruitment. Automatically parses natural language questions into structured query parameters and calls the backend API to return matching trial records. Trigger words include: clinical trial, NCT, drug development, indication, target, phase, enrollment, recruitment, sponsor, cohort, arm, endpoint, efficacy, safety data."
+env:
+  - name: NOAH_API_TOKEN
+    description: "API authentication token. Register for a free account at https://noah.bio to obtain your key."
+    required: true
 ---
 
 # Clinical Trial Search Skill
@@ -10,7 +14,7 @@ This skill converts natural language questions into structured API queries again
 ## Workflow
 
 1. **Parse user intent** — Extract key entities from the user's question
-2. **Build query parameters** — Map entities to the `ClinicalTrialSearchData` schema
+2. **Build query parameters** — Map entities to the query schema below
 3. **Execute the query** — Run `scripts/search.py`
 4. **Present results** — Format and display trials to the user
 
@@ -24,17 +28,17 @@ Identify the following entity types from the user's question:
 | `acronym` | `List[str]` | Trial acronym(s)                  | `["KEYNOTE-590"]`                                         |
 | `company` | `List[str]` | Sponsor company name(s)           | `["Pfizer", "Roche"]`                                     |
 | `indication` | `List[str]` | Disease / indication              | `["lung cancer", "NSCLC"]`                                |
-| `phase` | `List[str]` | Trial phase(s)                    | `["Phase 1", "Phase 3"]`                                  |
+| `phase` | `List[str]` | Trial phase(s)                    | `["Preclinical", "I", "II", "III", "IV", "Others"]`                                  |
 | `target` | `dict` | Biological target(s)              | `{"logic": "or", "data": ["PD-1", "VEGF"]}`               |
 | `drug_name` | `dict` | Drug name(s)                      | `{"logic": "or", "data": ["pembrolizumab"]}`              |
 | `drug_modality` | `dict` | Drug modality / type              | `{"logic": "or", "data": ["antibody", "small molecule"]}` |
 | `drug_feature` | `dict` | Drug feature(s)                   | `{"logic": "or", "data": ["bispecific"]}`                 |
-| `location` | `dict` | Trial location(s)                 | `{"logic": "or", "data": ["China", "USA"]}`               |
+| `location` | `dict` | Trial location(s)                 | `{"logic": "or", "data": ["China", "United States", "Japan"]}`               |
 | `route_of_administration` | `dict` | Route of administration           | `{"logic": "or", "data": ["IV", "oral"]}`                 |
 | `has_result_summary` | `bool` | Only trials with result summaries | `true`                                                    |
 | `official_data` | `bool` | Only official data sources        | `false`                                                   |
 | `page_num` | `int` | Page index (0-based)              | `0`                                                       |
-| `page_size` | `int` | Results per page (1–10)          | `10`                                                       |
+| `page_size` | `int` | Results per page (1–200)          | `10`                                                       |
 
 **Dict field format:**
 ```json
@@ -47,7 +51,7 @@ Identify the following entity types from the user's question:
 **Type rules:**
 - `indication`, `acronym`, `company`, `nctid`, `phase` → plain `List[str]`
 - `target`, `drug_name`, `drug_modality`, `drug_feature`, `location`, `route_of_administration` → `dict` with `logic` and `data`
-- Default to `page_num: 0, page_size: 5` unless the user specifies otherwise
+- Default to `page_num: 0, page_size: 10` unless the user specifies otherwise
 - Prefer English keywords (the database is indexed in English); translate non-English terms
 
 ## Step 2: Execute the Query
@@ -82,7 +86,7 @@ If results exceed 100, prompt the user to narrow the query. If no results are re
   "target": {"logic": "or", "data": ["PD-1"]},
   "drug_modality": {"logic": "or", "data": ["antibody"]},
   "indication": ["lung cancer"],
-  "phase": ["Phase 3"],
+  "phase": ["III"],
   "has_result_summary": true,
   "page_num": 0,
   "page_size": 10

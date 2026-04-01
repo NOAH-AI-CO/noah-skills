@@ -1,105 +1,166 @@
 ---
 name: medical-conference-search
-description: "Search medical conference and presentation databases. Use this skill whenever the user asks about medical conferences, academic conferences, session abstracts, posters, oral presentations, or conference-presented drug/trial data. The skill runs a two-step chained workflow: first query conferences, then query presentations for rich abstract/efficacy/safety content. Trigger words include: conference, symposium, congress, ASCO, ESMO, AHA, ACC, session, abstract, poster, oral presentation, data presented at, efficacy data, safety data, congress abstract."
+description: "Search medical conference and presentation databases. Use this skill whenever the user asks about medical conferences, academic conferences, session abstracts, posters, oral presentations, or conference-presented drug/trial data. Three scripts are available: search_conferences.py (find conferences), search_presentations.py (find abstracts/presentations), and search_chained.py (find conferences then auto-inject into presentation search). Trigger words include: conference, symposium, congress, ASCO, ESMO, AHA, ACC, session, abstract, poster, oral presentation, data presented at, efficacy data, safety data, congress abstract."
+env:
+  - name: NOAH_API_TOKEN
+    description: "API authentication token. Register for a free account at https://noah.bio to obtain your key."
+    required: true
 ---
 
 # Conference Search Skill
 
-This skill converts natural language questions into structured API queries against a conference and presentation database, then presents the results in a readable format.
-
-## Workflow
-
-1. **Parse user intent** — Extract key entities from the user's question
-2. **Build query parameters** — Map entities to the conference and presentation schemas
-3. **Execute the query** — Run `scripts/search.py`
-4. **Present results** — Format and display conferences and presentations to the user
-
-The skill runs in **two chained steps**: first query conferences, then query presentations using the result. Always run both steps in sequence for complete results.
-
-```
-Step 1 → Query conferences        → obtain conference_name / series_name
-Step 2 → Query presentations      → get abstracts, efficacy, safety, drug data
-```
+This skill searches a conference and presentation database using three independent scripts. Choose the script that fits the task — each can be used standalone, or combined in sequence.
 
 ---
 
-## Step 1: Conference Query Parameters
+## Scripts Overview
 
-Identify the following entity types from the user's question:
+| Script | When to use |
+|---|---|
+| `scripts/search_conferences.py` | Find conferences by name, date, location, or therapeutic area |
+| `scripts/search_presentations.py` | Find abstracts/presentations when you already know the conference name or series |
+| `scripts/search_chained.py` | Discover the conference first, then auto-inject its name into a presentation search |
+
+---
+
+## Script 1 — Search Conferences Only
+
+Use when the user asks about **which conferences exist**, **when/where they are held**, or wants to **browse conferences** by area or organization.
+
+```bash
+python scripts/search_conferences.py --params '<JSON>'
+python scripts/search_conferences.py --params-file query.json
+python scripts/search_conferences.py --params '<JSON>' --raw
+python scripts/search_conferences.py --params '<JSON>' --output results.json
+```
+
+### Query fields
 
 | Field | Type | Description | Example |
-|-------|------|-------------|---------|
+|---|---|---|---|
 | `conference_name` | `str` | Full or partial conference name | `"ASCO Annual Meeting 2024"` |
 | `conference_start_date` | `str` | Start date (YYYY-MM-DD) | `"2024-06-01"` |
 | `conference_end_date` | `str` | End date (YYYY-MM-DD) | `"2024-06-05"` |
 | `conference_location` | `str` | City, country, or venue | `"Chicago"` |
 | `series_name` | `str` | Conference series name | `"ASCO"` |
 | `series_organization` | `str` | Organizing body | `"American Society of Clinical Oncology"` |
-| `series_area` | `List[str]` | Therapeutic or subject area(s) | `["oncology", "cardiology"]` |
-| `from_n` | `int` | Pagination offset (0-based) | `0` |
-| `size` | `int` | Results per page (1–10) | `10` |
+| `series_area` | `List[str]` | Therapeutic area(s) | `["oncology", "cardiology"]` |
+| `from_n` | `int` | Pagination offset | `0` |
+| `size` | `int` | Results per page | `10` |
 
-**Type rules:**
-- All fields except `series_area` → plain `str`
-- `series_area` → `List[str]`
-- Default: `from_n: 0, size: 10`
+### Examples
 
-**Conference result fields returned:**
+```bash
+# Find all ASCO conferences
+python scripts/search_conferences.py --params '{"series_name": "ASCO"}'
+
+# Oncology conferences in Chicago in 2024
+python scripts/search_conferences.py --params '{"series_area": ["oncology"], "conference_location": "Chicago", "conference_start_date": "2024-01-01", "conference_end_date": "2024-12-31"}'
+
+# Cardiology conferences, raw JSON
+python scripts/search_conferences.py --params '{"series_area": ["cardiology"]}' --raw
+```
+
+### Result fields
 `conference_name`, `conference_abbreviation`, `conference_website`, `conference_description`, `conference_start_date`, `conference_end_date`, `conference_location`, `series_id`, `series_name`, `series_abbreviation`, `series_website`, `series_organization`, `series_area`
 
 ---
 
-## Step 2: Presentation Query Parameters
+## Script 2 — Search Presentations Only
 
-Identify the following entity types from the user's question:
+Use when the user asks about **specific drugs, diseases, targets, authors, or institutions** and already knows (or doesn't need to filter by) an exact conference. The `series_name` field is sufficient for most queries.
+
+```bash
+python scripts/search_presentations.py --params '<JSON>'
+python scripts/search_presentations.py --params-file query.json
+python scripts/search_presentations.py --params '<JSON>' --raw
+python scripts/search_presentations.py --params '<JSON>' --output results.json
+```
+
+### Query fields
 
 | Field | Type | Description | Example |
-|-------|------|-------------|---------|
+|---|---|---|---|
 | `authors` | `List[str]` | Presenter / author name(s) | `["John Smith"]` |
 | `institutions` | `List[str]` | Author institution(s) | `["MD Anderson"]` |
 | `drugs` | `List[str]` | Drug name(s) | `["pembrolizumab"]` |
 | `diseases` | `List[str]` | Disease / indication(s) | `["lung cancer", "NSCLC"]` |
 | `targets` | `List[str]` | Biological target(s) | `["PD-1", "VEGF"]` |
-| `conference_name` | `str` | Auto-filled from Step 1, or provide directly | `"2024 ASCO Annual Meeting"` |
-| `series_name` | `str` | Conference series name | `"ASCO"` |
-| `from_n` | `int` | Pagination offset (0-based) | `0` |
-| `size` | `int` | Results per page (1–5) | `5` |
+| `conference_name` | `str` | Exact conference name | `"2024 ASCO Annual Meeting"` |
+| `series_name` | `str` | Conference series name | `"ESMO"` |
+| `from_n` | `int` | Pagination offset | `0` |
+| `size` | `int` | Results per page | `10` |
 
-**Type rules:**
-- `authors`, `institutions`, `drugs`, `diseases`, `targets` → `List[str]`
-- `conference_name`, `series_name` → plain `str`
-- Default: `from_n: 0, size: 5`
-- In chained mode (both `--conference-params` and `--presentation-params` provided), `conference_name` from the top Step 1 result is **automatically injected** into Step 2
+### Examples
 
-**Presentation result fields returned:**
+```bash
+# Pembrolizumab lung cancer abstracts at ESMO
+python scripts/search_presentations.py --params '{"drugs": ["pembrolizumab"], "diseases": ["lung cancer"], "series_name": "ESMO"}'
+
+# KRAS G12C data from MD Anderson researchers
+python scripts/search_presentations.py --params '{"targets": ["KRAS G12C"], "institutions": ["MD Anderson"]}'
+
+# All presentations at a specific conference (exact name required)
+python scripts/search_presentations.py --params '{"conference_name": "2024 ASCO Annual Meeting", "diseases": ["NSCLC"]}'
+
+# Save to file
+python scripts/search_presentations.py --params '{"drugs": ["nivolumab"]}' --output results.json
+```
+
+### Result fields
 `session_title`, `presentation_title`, `presentation_website`, `main_author`, `main_author_institution`, `authors`, `institutions`, `abstract`, `design`, `efficacy`, `safety`, `summary`, `drugs`, `diseases`, `targets`, `series_name`, `conference_name`
 
 ---
 
-## Step 3: Execute the Query
+## Script 3 — Chained Search (Conference → Presentation)
+
+Use when you need to **find the exact conference first**, then search its presentations. The top-matching `conference_name` from Step 1 is **automatically injected** into Step 2 — no manual copy-paste needed.
 
 ```bash
-# Chained mode (Step 1 + Step 2, conference_name auto-injected)
-python scripts/search.py --conference-params '<JSON>' --presentation-params '<JSON>'
+python scripts/search_chained.py \
+    --conference-params '<JSON>' \
+    --presentation-params '<JSON>'
 
-# Step 1 only
-python scripts/search.py --conference-params '<JSON>' --step conference
+# With file inputs
+python scripts/search_chained.py \
+    --conference-params-file conf.json \
+    --presentation-params-file pres.json
 
-# Step 2 only (when conference_name is already known)
-python scripts/search.py --presentation-params '<JSON>' --step presentation
+# Raw JSON + save to file
+python scripts/search_chained.py \
+    --conference-params '<JSON>' \
+    --presentation-params '<JSON>' \
+    --raw --output results.json
 ```
 
-Add `--raw` to receive the unformatted JSON response.
+### Examples
+
+```bash
+# PD-1 data at ASCO 2024 (auto-resolves conference name)
+python scripts/search_chained.py \
+    --conference-params '{"series_name": "ASCO", "conference_start_date": "2024-01-01", "conference_end_date": "2024-12-31"}' \
+    --presentation-params '{"targets": ["PD-1"]}'
+
+# Roche bispecific antibodies at hematology conferences
+python scripts/search_chained.py \
+    --conference-params '{"series_area": ["hematology"]}' \
+    --presentation-params '{"drugs": ["bispecific antibody"], "institutions": ["Roche"]}'
+```
 
 ---
 
-## Step 4: Interpret Results
+## Choosing the Right Script
 
-The response contains:
-- Conference fields: name, dates, location, series, organization, and area
-- Presentation fields: abstract, design, efficacy, safety, drug and disease details
+```
+User asks about conferences / dates / locations
+  → search_conferences.py
 
-If results exceed 100, prompt the user to narrow the query. If no results are returned, suggest relaxing one or more filters.
+User asks about drug / disease / abstract data, knows the series (e.g. "at ESMO")
+  → search_presentations.py  (use series_name field)
+
+User asks about drug / disease / abstract data, knows the year but not exact conference name
+  → search_chained.py  (resolves conference_name automatically)
+```
 
 ---
 
@@ -107,58 +168,56 @@ If results exceed 100, prompt the user to narrow the query. If no results are re
 
 **User:** "What PD-1 drug data was presented at ASCO 2024?"
 
-**Parameters:**
 ```bash
-python scripts/search.py \
+python scripts/search_chained.py \
   --conference-params '{"series_name": "ASCO", "conference_start_date": "2024-01-01", "conference_end_date": "2024-12-31"}' \
   --presentation-params '{"targets": ["PD-1"]}'
 ```
-
-*(`conference_name` from Step 1 is auto-injected into Step 2)*
 
 ---
 
 **User:** "Pembrolizumab lung cancer abstracts from ESMO"
 
-**Parameters:**
 ```bash
-python scripts/search.py \
-  --presentation-params '{"drugs": ["pembrolizumab"], "diseases": ["lung cancer"], "series_name": "ESMO"}' \
-  --step presentation
+python scripts/search_presentations.py \
+  --params '{"drugs": ["pembrolizumab"], "diseases": ["lung cancer"], "series_name": "ESMO"}'
 ```
 
 ---
 
 **User:** "Oncology conferences in Chicago 2024"
 
-**Parameters:**
 ```bash
-python scripts/search.py \
-  --conference-params '{"series_area": ["oncology"], "conference_location": "Chicago", "conference_start_date": "2024-01-01", "conference_end_date": "2024-12-31"}' \
-  --step conference
+python scripts/search_conferences.py \
+  --params '{"series_area": ["oncology"], "conference_location": "Chicago", "conference_start_date": "2024-01-01", "conference_end_date": "2024-12-31"}'
 ```
 
 ---
 
 **User:** "KRAS G12C presentations by MD Anderson researchers"
 
-**Parameters:**
 ```bash
-python scripts/search.py \
-  --presentation-params '{"targets": ["KRAS G12C"], "institutions": ["MD Anderson"]}' \
-  --step presentation
+python scripts/search_presentations.py \
+  --params '{"targets": ["KRAS G12C"], "institutions": ["MD Anderson"]}'
 ```
 
 ---
 
 **User:** "Roche bispecific antibody data at hematology conferences"
 
-**Parameters:**
 ```bash
-python scripts/search.py \
+python scripts/search_chained.py \
   --conference-params '{"series_area": ["hematology"]}' \
   --presentation-params '{"drugs": ["bispecific antibody"], "institutions": ["Roche"]}'
 ```
+
+---
+
+## Tips
+
+- If no results are returned, try relaxing filters (e.g. use `series_name` instead of `conference_name`, or broaden the disease term).
+- `conference_name` in `search_presentations.py` must be an **exact match** — use `search_chained.py` or run `search_conferences.py` first to get the correct name.
+- All `List[str]` fields accept multiple values: `["NSCLC", "lung cancer"]`.
 
 ---
 
@@ -166,5 +225,4 @@ python scripts/search.py \
 
 - Python 3.8+
 - `requests` library (`pip install requests`)
-- Environment variable `NOAH_API_TOKEN` — API authentication token (required)
-  - Register for a free account at [noah.bio](https://noah.bio) to obtain your API key.
+- Environment variable `NOAH_API_TOKEN` — register at [noah.bio](https://noah.bio) to obtain your API key.
