@@ -6,7 +6,7 @@ Reads API credentials from environment variables and POSTs structured
 query parameters to a clinical trial database endpoint.
 
 Dict-type fields (target, drug_name, drug_modality, drug_feature, location,
-route_of_administration) accept a flat {"keywords": [...]} object.
+route_of_administration) accept a flat {"logic": "or", "data":[...]} object.
 Include/exclude filtering is not supported by the API.
 
 Usage:
@@ -56,7 +56,7 @@ DEFAULT_PARAMS = {
 def build_payload(user_params: dict) -> dict:
     """Merge user-supplied parameters with defaults to produce a complete payload.
 
-    Dict-type fields should be passed as {"keywords": ["val1", "val2"]}.
+    Dict-type fields should be passed as {"logic": "or", "data": ["val1", "val2"]}.
     Include/exclude filtering is not supported.
     """
     payload = DEFAULT_PARAMS.copy()

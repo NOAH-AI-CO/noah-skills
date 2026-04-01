@@ -6,7 +6,7 @@ Reads API credentials from environment variables and POSTs structured
 query parameters to a drug pipeline search endpoint.
 
 Dict-type fields (target, drug_name, drug_modality, drug_feature,
-route_of_administration) accept a flat {"keywords": [...]} object.
+route_of_administration) accept a flat {"logic": "or", "data": [...]} object.
 Include/exclude filtering is not supported by the API.
 
 Usage:
@@ -52,7 +52,7 @@ DEFAULT_PARAMS = {
 def build_payload(user_params: dict) -> dict:
     """Merge user-supplied parameters with defaults to produce a complete payload.
 
-    Dict-type fields should be passed as {"keywords": ["val1", "val2"]}.
+    Dict-type fields should be passed as {"logic": "or", "data": ["val1", "val2"]}.
     Include/exclude filtering is not supported.
     """
     payload = DEFAULT_PARAMS.copy()
@@ -179,7 +179,7 @@ def main():
         epilog="""
 Examples:
   # PD-1 antibody drugs in Phase 3
-  python scripts/search.py --params '{"target": {"keywords": ["PD-1"]}, "drug_modality": {"keywords": ["antibody"]}, "phase": ["III"]}'
+  python scripts/search.py --params '{"target": {"logic": "or", "data": ["PD-1"]}, "drug_modality": {"logic": "or", "data": ["antibody"]}, "phase": ["III"]}'
 
   # Query by company name
   python scripts/search.py --params '{"company": ["Roche"]}'

@@ -6,7 +6,7 @@ All available skills live under `skills/<name>/SKILL.md`:
 
 | Skill name | Folder | Primary use (when to trigger) |
 |-----------|--------|--------------------------------|
-| `clinical-trial-search` | `clinical_triall` | **Clinical trial search**: use when the user asks about clinical trials, NCT IDs, trial phases, enrollment/recruitment, route of administration, trial locations, sponsors, or efficacy/safety readouts. |
+| `clinical-trial-search` | `clinical_trial` | **Clinical trial search**: use when the user asks about clinical trials, NCT IDs, trial phases, enrollment/recruitment, route of administration, trial locations, sponsors, or efficacy/safety readouts. |
 | `drug-search` | `drug_pipeline` | **Drug pipeline / development search**: use when the user asks about specific drugs/molecules, targets, indications, companies, modalities, routes of administration, or development stages (e.g. Phase 1/2/3, approved). |
 | `medical-conference-search` | `medical_conference` | **Medical conference and abstract search**: use when the user asks about medical conferences (e.g. ASCO, ESMO), sessions, posters, oral presentations, or data presented at conferences (efficacy/safety summaries, trial updates, etc.). |
 
