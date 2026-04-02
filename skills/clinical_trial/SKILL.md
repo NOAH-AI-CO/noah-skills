@@ -171,6 +171,9 @@ Initial query returns results?
           └── Still no → Strategy 2: sponsor anchor + local filter
                          └── Still no → Strategy 3: target/indication broad search
                                         └── Still no → Strategy 4: relax filters incrementally
+Any step hits HTTP 429?
+└── Pause entire chain 15s → resume from current strategy
+    (sleep ≥5s between every request to avoid triggering 429)
 ```
 
 ---

@@ -267,6 +267,10 @@ Query returns results?
 No (conferences) →
       Strategy 1: try series abbreviation ↔ full name swap
       └── Still no → broaden series_area or remove location filter
+
+Any step hits HTTP 429?
+└── Pause entire chain 30s → resume from current strategy
+    (sleep ≥5s between every request to avoid triggering 429)
 ```
 
 ---

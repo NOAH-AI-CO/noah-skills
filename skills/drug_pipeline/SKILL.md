@@ -138,6 +138,9 @@ Initial query returns results?
 └── No  → Strategy 1: expand drug_name variants
           └── Still no results → Strategy 2: company anchor + local filter
                                  └── Still no results → Strategy 3: target/modality broad search
+Any step hits HTTP 429?
+└── Pause entire chain 30s → resume from current strategy
+    (sleep ≥5s between every request to avoid triggering 429)
 ```
 
 ---
