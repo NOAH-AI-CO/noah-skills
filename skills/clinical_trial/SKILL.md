@@ -68,8 +68,8 @@ Add `--raw` to receive the unformatted JSON response.
 ## Step 3: Interpret Results
 
 The response contains:
-- `total` — total number of matching trials
-- `trials` — current page of results, each with NCT ID, title, phase, status, indication, drugs, sponsor, etc.
+- `page_size` — total number of matching trials
+- `results` — current page of results, each with NCT ID, title, phase, status, indication, drugs, sponsor, etc.
 
 If results exceed 100, prompt the user to narrow the query. If no results are returned, suggest relaxing one or more filters.
 
@@ -134,9 +134,22 @@ If results exceed 100, prompt the user to narrow the query. If no results are re
 }
 ```
 
+--
+
 ## Dependencies
 
 - Python 3.8+
 - `requests` library (`pip install requests`)
 - Environment variable `NOAH_API_TOKEN` — API authentication token (required)
   - Register for a free account at [noah.bio](https://noah.bio) to obtain your API key.
+
+--
+
+## Security & Packaging Notes
+
+- This skill only calls NoahAI official HTTPS endpoints under `https://www.noahai.bio/api/` and does not contact third-party services.
+- It requires exactly one environment variable: `NOAH_API_TOKEN`. Store it in the environment or a local `.env` file, and never place it inline in commands, chats, or packaged files.
+- The token is scoped to read medical public details only and cannot access private user records.
+- The skill does not intentionally persist request parameters locally. Any server-side retention is determined by the NoahAI API service and its operational logging policies.
+- It does not request persistent or system-level privileges and does not modify system configuration.
+- The skill is source-file based (Python scripts only) and does not require runtime installs, package downloads, or external bootstrap steps.

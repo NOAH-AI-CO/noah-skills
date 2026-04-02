@@ -142,7 +142,7 @@ def format_results(data: dict) -> str:
     total = data.get("page_size", "unknown")
     trials = data.get("results", [])
 
-    lines.append(f"=== Results: {total} trial(s) matched ===\n")
+    lines.append(f"=== Results: {total}(page_size) trial(s) matched ===\n")
     if not trials:
         lines.append("No clinical trials found matching your query.")
         return "\n".join(lines)
