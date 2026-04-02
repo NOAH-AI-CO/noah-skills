@@ -163,7 +163,7 @@ def main():
         epilog="""
 Examples:
   # PD-1 antibody drugs in Phase 3
-  python scripts/search.py --params '{"target": {"logic": "or", "data": ["PD-1"]}, "drug_modality": {"logic": "or", "data": ["antibody"]}, "phase": ["III"]}'
+  python scripts/search.py --params '{"target": {"logic": "or", "data": ["PD-1"]}, "drug_modality": {"logic": "or", "data": ["Antibody-Drug Conjugates, ADCs"]}, "phase": ["III"]}'
 
   # Query by company name
   python scripts/search.py --params '{"company": ["Roche"]}'

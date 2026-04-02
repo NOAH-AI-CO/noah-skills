@@ -161,6 +161,116 @@ User asks about drug / disease / abstract data, knows the year but not exact con
 
 ---
 
+## Fallback Search Strategies
+
+When an initial query returns zero or poor results, try these strategies **in order**:
+
+### Strategy 1 — Conference Name / Series Variant Expansion
+
+Conference abbreviations and full names are often stored inconsistently. Try common variants before giving up.
+
+```bash
+# Try abbreviation first, then full name
+python scripts/search_conferences.py --params '{"series_name": "ASCO"}'
+python scripts/search_conferences.py --params '{"series_name": "American Society of Clinical Oncology"}'
+
+# Try alternate known abbreviations
+# ESMO → "European Society for Medical Oncology"
+# AHA  → "American Heart Association"
+# ACC  → "American College of Cardiology"
+```
+
+For presentations, switch from `conference_name` (exact match) to `series_name` (fuzzy):
+
+```bash
+# Exact match — fails if name is slightly off
+--params '{"conference_name": "2024 ASCO Annual Meeting", ...}'
+
+# Safer fallback — use series instead
+--params '{"series_name": "ASCO", ...}'
+```
+
+---
+
+### Strategy 2 — Switch to Chained Search
+
+If `search_presentations.py` returns nothing with a manually typed `conference_name`, the name is likely mismatched. Let `search_chained.py` resolve it automatically.
+
+```bash
+# Instead of (may fail on exact name mismatch):
+python scripts/search_presentations.py \
+  --params '{"conference_name": "ASCO 2024", "drugs": ["pembrolizumab"]}'
+
+# Use chained (auto-resolves correct conference_name):
+python scripts/search_chained.py \
+  --conference-params '{"series_name": "ASCO", "conference_start_date": "2024-01-01", "conference_end_date": "2024-12-31"}' \
+  --presentation-params '{"drugs": ["pembrolizumab"]}'
+```
+
+---
+
+### Strategy 3 — Drug / Disease Term Expansion
+
+Drug names and disease terms in abstracts may use brand names, INNs, aliases, or abbreviations. Expand the `drugs` or `diseases` list to cover variants.
+
+```bash
+# Expand drug name variants
+--params '{"drugs": ["SHR-A1904", "SHR A1904", "A1904"], "series_name": "ASCO"}'
+
+# Expand disease terms (specific → broad)
+--params '{"diseases": ["NSCLC", "non-small cell lung cancer", "lung cancer"], "series_name": "ESMO"}'
+
+# Try target if drug name fails entirely
+--params '{"targets": ["CLDN18.2", "Nectin-4"], "series_name": "ASCO"}'
+```
+
+---
+
+### Strategy 4 — Institution-First Search
+
+When drug name and disease matching both fail, anchor on the presenting institution or author and filter results locally.
+
+```bash
+# Broad institutional pull
+python scripts/search_presentations.py \
+  --params '{"institutions": ["Jiangsu Hengrui", "Hengrui Medicine"], "series_name": "ASCO", "size": 100}'
+
+# Then filter locally by drug name pattern or disease keyword
+```
+
+---
+
+### Strategy 5 — Relax Filters Incrementally
+
+Drop constraints one at a time in this order:
+
+1. Remove `conference_name` → use `series_name` only
+2. Remove date range constraints
+3. Broaden `diseases` (e.g. `"NSCLC"` → `"lung cancer"` → `"cancer"`)
+4. Remove `series_name` to search across all conferences
+5. Search by `targets` alone if drug name is unknown
+
+---
+
+## Decision Tree
+
+```
+Query returns results?
+├── Yes → present results
+└── No (presentations) →
+      Strategy 1: switch conference_name → series_name
+      └── Still no → Strategy 2: switch to search_chained.py
+                     └── Still no → Strategy 3: expand drugs / diseases / targets terms
+                                    └── Still no → Strategy 4: institution anchor + local filter
+                                                   └── Still no → Strategy 5: relax filters incrementally
+
+No (conferences) →
+      Strategy 1: try series abbreviation ↔ full name swap
+      └── Still no → broaden series_area or remove location filter
+```
+
+---
+
 ## Conversion Examples
 
 **User:** "What PD-1 drug data was presented at ASCO 2024?"
@@ -223,3 +333,14 @@ python scripts/search_chained.py \
 - Python 3.8+
 - `requests` library (`pip install requests`)
 - Environment variable `NOAH_API_TOKEN` — register at [noah.bio](https://noah.bio) to obtain your API key.
+
+---
+
+## Security & Packaging Notes
+
+- This skill only calls NoahAI official HTTPS endpoints under `https://www.noahai.bio/api/` and does not contact third-party services.
+- It requires exactly one environment variable: `NOAH_API_TOKEN`. Store it in the environment or a local `.env` file, and never place it inline in commands, chats, or packaged files.
+- The token is scoped to read medical public details only and cannot access private user records.
+- The skill does not intentionally persist request parameters locally. Any server-side retention is determined by the NoahAI API service and its operational logging policies.
+- It does not request persistent or system-level privileges and does not modify system configuration.
+- The skill is source-file based (Python scripts only) and does not require runtime installs, package downloads, or external bootstrap steps.

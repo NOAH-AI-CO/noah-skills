@@ -71,13 +71,114 @@ The response contains:
 - `page_size` — total number of matching trials
 - `results` — current page of results, each with NCT ID, title, phase, status, indication, drugs, sponsor, etc.
 
-If results exceed 100, prompt the user to narrow the query. If no results are returned, suggest relaxing one or more filters.
+If results exceed 100, prompt the user to narrow the query. If no results are returned, apply the fallback strategies below before giving up.
+
+## Step 3: Review and Fallback Search Strategies
+If no results are returned, apply the fallback strategies below before giving up.
+When an initial query returns zero or poor results, try these strategies **in order**:
+
+### Strategy 1 — Drug Name Variant Expansion
+
+Trial registries may store drug names inconsistently (INN vs brand name, with/without hyphens, partial codes). Expand `drug_name.data` to include multiple variants in a single `or` query.
+
+```json
+{
+  "drug_name": {"logic": "or", "data": ["SHR-A1904", "SHR A1904", "A1904", "SHR1904"]},
+  "page_num": 0,
+  "page_size": 50
+}
+```
+
+Also try substituting the trial acronym if known:
+```json
+{
+  "acronym": ["KEYNOTE-590", "KEYNOTE590", "KN590"],
+  "page_num": 0,
+  "page_size": 10
+}
+```
+
+**Common variant patterns:**
+- Remove or replace hyphens: `SHR-A1904` → `SHR A1904`, `SHRA1904`
+- Strip prefix: `9MW-2821` → `MW-2821`, `9MW2821`
+- Try both INN and internal code together in the same `data` array
+
+---
+
+### Strategy 2 — Sponsor-First with Application-Layer Filtering
+
+When drug name matching is unreliable, anchor on the sponsor company and pull a broad result set, then filter locally by indication, phase, or modality.
+
+```json
+{
+  "company": ["Roche", "Roche Inc"],
+  "page_num": 0,
+  "page_size": 200
+}
+```
+
+After retrieval, apply local filters:
+- `phase in ["II", "III"]`
+- `indication contains "breast cancer"`
+- `drug_name matches known code pattern`
+
+Use this strategy when the drug code is ambiguous or when searching for a company's full trial portfolio.
+
+---
+
+### Strategy 3 — Broad Target/Indication Search with Post-Filtering
+
+When neither drug name nor company yields results, search by biological target and indication, then narrow client-side by sponsor or drug name pattern.
+
+```json
+{
+  "target": {"logic": "or", "data": ["CLDN18.2", "Nectin-4", "HER2"]},
+  "indication": ["gastric cancer", "breast cancer"],
+  "page_num": 0,
+  "page_size": 200
+}
+```
+
+After retrieval, filter by:
+- Sponsor name substring (e.g. contains `"Hengrui"`)
+- Drug code prefix (e.g. starts with `SHR`, `9MW`, `A166`)
+- Trial status (`Recruiting`, `Active, not recruiting`)
+
+> **Note:** If the API supports regex, patterns like `(SHR|9MW|A166)` can be passed directly in `drug_name.data` to broaden matching in a single call.
+
+---
+
+### Strategy 4 — Relax Filters Incrementally
+
+If all strategies above still return no results, drop filters one at a time in this order:
+
+1. Drop `has_result_summary` (many trials have no posted results)
+2. Drop `phase` filter
+3. Drop `location` filter
+4. Broaden `indication` (e.g. `"NSCLC"` → `"lung cancer"` → `"cancer"`)
+5. Remove `drug_modality` or `drug_feature` constraints
+
+Re-run after each relaxation and stop as soon as results appear.
+
+---
+
+## Decision Tree
+
+```
+Initial query returns results?
+├── Yes → present results
+└── No  → Strategy 1: expand drug_name / acronym variants
+          └── Still no → Strategy 2: sponsor anchor + local filter
+                         └── Still no → Strategy 3: target/indication broad search
+                                        └── Still no → Strategy 4: relax filters incrementally
+```
+
+---
 
 ## Conversion Examples
 
 **User:** "Find Phase 3 trials of PD-1 antibodies in lung cancer that have results"
 
-**Parameters:**
 ```json
 {
   "target": {"logic": "or", "data": ["PD-1"]},
@@ -94,7 +195,6 @@ If results exceed 100, prompt the user to narrow the query. If no results are re
 
 **User:** "Look up NCT04280783"
 
-**Parameters:**
 ```json
 {
   "nctid": ["NCT04280783"],
@@ -107,7 +207,6 @@ If results exceed 100, prompt the user to narrow the query. If no results are re
 
 **User:** "Roche bispecific antibody trials in China"
 
-**Parameters:**
 ```json
 {
   "company": ["Roche"],
@@ -122,7 +221,6 @@ If results exceed 100, prompt the user to narrow the query. If no results are re
 
 **User:** "Oral small molecule KRAS G12C inhibitors in colorectal cancer"
 
-**Parameters:**
 ```json
 {
   "target": {"logic": "or", "data": ["KRAS G12C"]},
@@ -134,7 +232,7 @@ If results exceed 100, prompt the user to narrow the query. If no results are re
 }
 ```
 
---
+---
 
 ## Dependencies
 
@@ -143,7 +241,7 @@ If results exceed 100, prompt the user to narrow the query. If no results are re
 - Environment variable `NOAH_API_TOKEN` — API authentication token (required)
   - Register for a free account at [noah.bio](https://noah.bio) to obtain your API key.
 
---
+---
 
 ## Security & Packaging Notes
 
