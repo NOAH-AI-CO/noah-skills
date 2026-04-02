@@ -32,7 +32,7 @@ except ImportError:
 # API helper
 # ---------------------------------------------------------------------------
 
-API_URL = "https://noah.bio"
+API_URL = "https://www.noah.bio"
 ENDPOINT = "/api/skills/conference_search/"
 
 DEFAULTS = {
@@ -59,16 +59,6 @@ def _post(payload):
     print(f"[INFO] Query payload:\n{json.dumps(payload, indent=2)}", file=sys.stderr)
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=30, allow_redirects=False)
-
-        for _ in range(3):
-            if response.status_code not in {301, 302, 303, 307, 308}:
-                break
-            redirect_url = response.headers.get("Location", "").strip()
-            if not redirect_url:
-                break
-            redirect_url = urljoin(API_URL, redirect_url)
-            response = requests.post(redirect_url, headers=headers, json=payload, timeout=30, allow_redirects=False)
-
         response.raise_for_status()
     except requests.exceptions.ConnectionError as e:
         raise ConnectionError(f"Cannot connect to API server: {url}\nDetails: {e}")

@@ -71,7 +71,7 @@ def search(params: dict) -> dict:
     :param params: Query parameter dict
     :return: Parsed JSON response from the API
     """
-    api_url = r"https://noah.bio/api/skills/drug_search/"
+    api_url = r"https://www.noah.bio/api/skills/drug_search/"
     api_token = os.environ.get("NOAH_API_TOKEN", "").strip()
 
     if not api_token:
@@ -93,22 +93,6 @@ def search(params: dict) -> dict:
 
     try:
         response = requests.post(api_url, headers=headers, json=payload, timeout=30, allow_redirects=False)
-        
-        for _ in range(3):
-            if response.status_code not in {301, 302, 303, 307, 308}:
-                break
-            redirect_url = response.headers.get("Location", "").strip()
-            if not redirect_url:
-                break
-            redirect_url = urljoin(api_url, redirect_url)
-            response = requests.post(
-                redirect_url,
-                headers=headers,
-                json=payload,
-                timeout=30,
-                allow_redirects=False,
-            )
-        
         response.raise_for_status()
     except requests.exceptions.ConnectionError as e:
         raise ConnectionError(f"Cannot connect to API server: {api_url}\nDetails: {e}")
