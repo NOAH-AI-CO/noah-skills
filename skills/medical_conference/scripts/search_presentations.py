@@ -45,7 +45,7 @@ DEFAULTS = {
     "conference_name": "",
     "series_name": "",
     "from_n": 0,
-    "size": 10,
+    "size": 50,
 }
 
 
@@ -155,7 +155,7 @@ Query fields:
   conference_name  str         Exact conference name (from conference search)
   series_name      str         Conference series name (e.g. "ESMO")
   from_n           int         Pagination offset (default: 0)
-  size             int         Results per page (default: 5)
+  size             int         Results per page (default: 50)
 
 Examples:
   python scripts/search_presentations.py --params '{"drugs": ["pembrolizumab"], "diseases": ["lung cancer"], "series_name": "ESMO"}'

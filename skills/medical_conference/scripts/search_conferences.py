@@ -154,7 +154,7 @@ Query fields:
   series_organization    str         Organizing body
   series_area            List[str]   Therapeutic area(s)
   from_n                 int         Pagination offset (default: 0)
-  size                   int         Results per page (default: 5)
+  size                   int         Results per page (default: 50)
 
 Examples:
   python scripts/search_conferences.py --params '{"series_name": "ASCO"}'

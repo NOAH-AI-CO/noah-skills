@@ -43,7 +43,7 @@ python scripts/search_conferences.py --params '<JSON>' --output results.json
 | `series_organization` | `str` | Organizing body | `"American Society of Clinical Oncology"` |
 | `series_area` | `List[str]` | Therapeutic area(s) | `["oncology", "cardiology"]` |
 | `from_n` | `int` | Pagination offset | `0` |
-| `size` | `int` | Results per page | `10` |
+| `size` | `int` | Results per page | `50` |
 
 ### Examples
 

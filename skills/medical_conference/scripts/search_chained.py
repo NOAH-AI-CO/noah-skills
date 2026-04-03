@@ -81,7 +81,7 @@ CONFERENCE_DEFAULTS = {
     "series_organization": "",
     "series_area": [],
     "from_n": 0,
-    "size": 10,
+    "size": 50,
 }
 
 
@@ -130,7 +130,7 @@ PRESENTATION_DEFAULTS = {
     "conference_name": "",
     "series_name": "",
     "from_n": 0,
-    "size": 10,
+    "size": 50,
 }
 
 
