@@ -248,7 +248,7 @@ Any step hits HTTP 429?
 
 ## Security & Packaging Notes
 
-- This skill only calls NoahAI official HTTPS endpoints under `https://www.noahai.bio/api/` and does not contact third-party services.
+- This skill only calls NoahAI official HTTPS endpoints under `https://www.noah.bio/api/` and does not contact third-party services.
 - It requires exactly one environment variable: `NOAH_API_TOKEN`. Store it in the environment or a local `.env` file, and never place it inline in commands, chats, or packaged files.
 - The token is scoped to read medical public details only and cannot access private user records.
 - The skill does not intentionally persist request parameters locally. Any server-side retention is determined by the NoahAI API service and its operational logging policies.
