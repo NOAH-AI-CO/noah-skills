@@ -44,7 +44,7 @@ DEFAULTS = {
     "series_organization": "",
     "series_area": [],
     "from_n": 0,
-    "size": 10,
+    "size": 50,
 }
 
 
